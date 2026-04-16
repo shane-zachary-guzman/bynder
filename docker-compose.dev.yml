@@ -1,0 +1,11 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: builder
+    command: npx tsx watch src/server.ts
+    volumes:
+      - ./backend/src:/app/src
+    environment:
+      NODE_ENV: development
