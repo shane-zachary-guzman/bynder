@@ -17,6 +17,9 @@ npm-debug.log*
 # Docker
 .docker/
 
+# Claude Code local session data
+.claude/
+
 # IDE
 .vscode/
 .idea/

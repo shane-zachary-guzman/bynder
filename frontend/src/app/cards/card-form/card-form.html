@@ -1,0 +1,127 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-column gap-4 pt-2">
+
+  @if (card(); as existing) {
+    <!-- Edit mode: read-only card identity header -->
+    <div class="card-identity-header">
+      <span class="card-identity-name">{{ existing.name ?? ('Card #' + existing.repo_card_id) }}</span>
+      <span class="card-identity-meta">{{ existing.set_code }} · {{ existing.card_number }}</span>
+    </div>
+  } @else {
+    <!-- Add mode: set code + card number lookup fields -->
+    <div class="flex flex-column gap-2">
+      <label for="card-set-code" class="font-semibold">
+        Set Code <span class="text-danger">*</span>
+      </label>
+      <input
+        pInputText
+        id="card-set-code"
+        type="text"
+        formControlName="set_code"
+        placeholder="e.g. TFC"
+        class="w-full"
+      />
+      @if (form.controls.set_code.invalid && form.controls.set_code.touched) {
+        <small class="p-error">Set code is required.</small>
+      }
+    </div>
+
+    <div class="flex flex-column gap-2">
+      <label for="card-number" class="font-semibold">
+        Card Number <span class="text-danger">*</span>
+      </label>
+      <input
+        pInputText
+        id="card-number"
+        type="text"
+        formControlName="card_number"
+        placeholder="e.g. 001/204"
+        class="w-full"
+      />
+      @if (form.controls.card_number.invalid && form.controls.card_number.touched) {
+        <small class="p-error">Card number is required.</small>
+      }
+    </div>
+  }
+
+  <div class="flex flex-column gap-2">
+    <label for="card-condition" class="font-semibold">Condition <span class="text-danger">*</span></label>
+    <p-select
+      inputId="card-condition"
+      formControlName="condition"
+      [options]="conditionOptions"
+      optionLabel="label"
+      optionValue="value"
+      placeholder="Select condition"
+      styleClass="w-full"
+    />
+  </div>
+
+  <div class="flex flex-column gap-2">
+    <label for="card-treatment" class="font-semibold">Treatment <span class="text-danger">*</span></label>
+    <p-select
+      inputId="card-treatment"
+      formControlName="treatment"
+      [options]="treatmentOptions"
+      optionLabel="label"
+      optionValue="value"
+      placeholder="Select treatment"
+      styleClass="w-full"
+    />
+  </div>
+
+  <div class="flex flex-column gap-2">
+    <label for="card-quantity" class="font-semibold">Quantity <span class="text-danger">*</span></label>
+    <p-inputNumber
+      inputId="card-quantity"
+      formControlName="quantity"
+      [min]="1"
+      [showButtons]="true"
+      styleClass="w-full"
+      inputStyleClass="w-full"
+    />
+  </div>
+
+  <div class="flex flex-column gap-2">
+    <label for="card-value" class="font-semibold">
+      Estimated Value <span class="text-color-secondary font-normal">(optional)</span>
+    </label>
+    <input
+      pInputText
+      id="card-value"
+      type="text"
+      formControlName="estimated_value"
+      placeholder="e.g. 12.50"
+    />
+  </div>
+
+  <div class="flex flex-column gap-2">
+    <label for="card-notes" class="font-semibold">
+      Notes <span class="text-color-secondary font-normal">(optional)</span>
+    </label>
+    <textarea
+      pTextarea
+      id="card-notes"
+      formControlName="notes"
+      placeholder="Any personal notes..."
+      rows="3"
+      class="w-full"
+    ></textarea>
+  </div>
+
+  <div class="flex justify-content-end gap-2 mt-2">
+    <p-button
+      type="button"
+      label="Cancel"
+      severity="secondary"
+      [text]="true"
+      (onClick)="cancelled.emit()"
+    />
+    <p-button
+      type="submit"
+      [label]="card() ? 'Save Changes' : 'Add Card'"
+      icon="pi pi-check"
+      [loading]="saving"
+    />
+  </div>
+
+</form>

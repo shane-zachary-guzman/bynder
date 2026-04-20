@@ -1,0 +1,80 @@
+<div class="page-container">
+  <div class="flex justify-content-between align-items-center mb-4">
+    <h1 class="m-0">My Collections</h1>
+    <p-button
+      label="New Collection"
+      icon="pi pi-plus"
+      (onClick)="openCreate()"
+    />
+  </div>
+
+  <p-dataview [value]="collections()" [loading]="loading()">
+    <ng-template #list let-items>
+      <div class="grid grid-cols-1 gap-4">
+        @for (collection of items; track collection.id) {
+          <div class="col-12">
+            <p-card styleClass="h-full">
+              <div class="flex justify-content-between align-items-start">
+                <div class="flex-1">
+                  <a
+                    [routerLink]="['/collections', collection.id]"
+                    class="text-xl font-bold text-primary no-underline hover:underline"
+                  >
+                    {{ collection.name }}
+                  </a>
+                  @if (collection.description) {
+                    <p class="mt-2 mb-0 text-color-secondary">{{ collection.description }}</p>
+                  }
+                  <small class="text-color-secondary mt-2 block">
+                    Created {{ collection.created_at | date:'mediumDate' }}
+                  </small>
+                </div>
+                <div class="flex gap-2 ml-4">
+                  <p-button
+                    icon="pi pi-pencil"
+                    severity="secondary"
+                    [text]="true"
+                    [rounded]="true"
+                    (onClick)="openEdit(collection)"
+                    ariaLabel="Edit collection"
+                  />
+                  <p-button
+                    icon="pi pi-trash"
+                    severity="danger"
+                    [text]="true"
+                    [rounded]="true"
+                    (onClick)="confirmDelete(collection)"
+                    ariaLabel="Delete collection"
+                  />
+                </div>
+              </div>
+            </p-card>
+          </div>
+        }
+        @empty {
+          <div class="col-12 text-center py-8">
+            <i class="pi pi-folder-open text-4xl text-color-secondary mb-3" style="display: block;"></i>
+            <p class="text-color-secondary text-lg">No collections yet. Create your first one!</p>
+          </div>
+        }
+      </div>
+    </ng-template>
+  </p-dataview>
+</div>
+
+<p-dialog
+  header="{{ editTarget() ? 'Edit Collection' : 'New Collection' }}"
+  [visible]="showForm()"
+  (visibleChange)="showForm.set($event)"
+  [modal]="true"
+  [style]="{ width: '450px' }"
+  [draggable]="false"
+>
+  <app-collection-form
+    [collection]="editTarget()"
+    (saved)="onSaved()"
+    (cancelled)="showForm.set(false)"
+  />
+</p-dialog>
+
+<p-confirmdialog />

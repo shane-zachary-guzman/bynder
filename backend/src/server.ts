@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes';
 import collectionRoutes from './routes/collection.routes';
 import cardRoutes from './routes/card.routes';
+import repoRoutes from './routes/repo.routes';
 
 dotenv.config();
 
@@ -29,6 +30,7 @@ app.use(cookieParser());
 app.use('/api/auth', authRoutes);
 app.use('/api/collections', collectionRoutes);
 app.use('/api/collections', cardRoutes);
+app.use('/api/repo', repoRoutes);        // public — no auth middleware
 
 // ─── Health check ─────────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => {

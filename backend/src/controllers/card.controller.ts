@@ -1,8 +1,19 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
+import pool from '../config/db';
 import { CardModel } from '../models/card.model';
 import { CollectionModel } from '../models/collection.model';
 import { CardCondition, CardTreatment } from '../types/index';
+
+/**
+ * Maps a supported game identifier to its corresponding repository table name.
+ * Add new entries here when additional games are introduced.
+ *
+ * @internal
+ */
+const REPO_TABLE: Record<string, string> = {
+  lorcana: 'lorcana_repo',
+};
 
 const CONDITIONS: [CardCondition, ...CardCondition[]] = [
   'mint',
@@ -21,13 +32,32 @@ const TREATMENTS: [CardTreatment, ...CardTreatment[]] = [
   'promo',
 ];
 
+/**
+ * Zod schema for the `POST /:collectionId/cards/by-set` body.
+ * Identifies the repo card by human-readable set code + card number rather
+ * than the internal `repo_card_id` primary key.
+ */
+const CreateCardBySetSchema = z.object({
+  /** Game identifier used to route the lookup to the correct repo table. */
+  game: z.enum(['lorcana']),
+  /** Short set identifier, e.g. `'TFC'`. */
+  set_code: z.string().min(1),
+  /** Card number within the set, e.g. `'001/204'`. */
+  card_number: z.string().min(1),
+  condition: z.enum(CONDITIONS),
+  treatment: z.enum(TREATMENTS).default('normal'),
+  quantity: z.number().int().positive().default(1),
+  estimated_value: z.string().nullable().optional(),
+  notes: z.string().nullable().optional(),
+});
+
 const CreateCardSchema = z.object({
   repo_card_id: z.number().int().positive(),
   condition: z.enum(CONDITIONS),
   treatment: z.enum(TREATMENTS).default('normal'),
   quantity: z.number().int().positive().default(1),
-  estimated_value: z.string().optional(),
-  notes: z.string().optional(),
+  estimated_value: z.string().nullable().optional(),
+  notes: z.string().nullable().optional(),
 });
 
 const UpdateCardSchema = z.object({
@@ -166,4 +196,55 @@ export async function deleteCard(req: Request, res: Response): Promise<void> {
     return;
   }
   res.status(204).send();
+}
+
+/**
+ * Handles `POST /api/collections/:collectionId/cards/by-set`.
+ * Resolves a card from the appropriate game repository using `set_code` and
+ * `card_number`, then adds it to the collection. This is the preferred endpoint
+ * for user-facing flows where the internal `repo_card_id` is not known.
+ * Requires the `authenticate` and `checkCardLimit` middleware.
+ *
+ * @param req - Express request; `req.params.collectionId` identifies the collection;
+ *   expects a body matching {@link CreateCardBySetSchema}.
+ * @param res - Express response; returns the created {@link CollectedCard} with HTTP 201
+ *   on success, HTTP 400 on validation failure, HTTP 404 if the collection or repo card
+ *   is not found, or HTTP 500 on an unexpected error.
+ */
+export async function createCardBySet(req: Request, res: Response): Promise<void> {
+  try {
+    const collectionId = Number(req.params['collectionId']);
+    if (!(await verifyCollectionOwnership(collectionId, req.user!.id, res))) return;
+
+    const parsed = CreateCardBySetSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.flatten() });
+      return;
+    }
+
+    const { game, set_code, card_number, ...cardFields } = parsed.data;
+    const table = REPO_TABLE[game];
+
+    const { rows } = await pool.query<{ id: number }>(
+      `SELECT id FROM ${table} WHERE set_code = $1 AND card_number = $2`,
+      [set_code, card_number]
+    );
+
+    const repoCard = rows[0];
+    if (!repoCard) {
+      res.status(404).json({
+        error: `Card not found in ${game} repository (set: ${set_code}, number: ${card_number})`,
+      });
+      return;
+    }
+
+    const card = await CardModel.create(collectionId, {
+      repo_card_id: repoCard.id,
+      ...cardFields,
+    });
+    res.status(201).json(card);
+  } catch (err) {
+    console.error('createCardBySet error:', err);
+    res.status(500).json({ message: 'Failed to add card to collection.' });
+  }
 }

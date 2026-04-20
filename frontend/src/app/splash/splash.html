@@ -1,0 +1,259 @@
+<p-toast />
+
+<div class="splash-container">
+
+  <!-- Hero header -->
+  <div class="splash-hero">
+    <h1 class="splash-title">Bynder</h1>
+    <p class="splash-subtitle">Browse, collect, and track your trading cards.</p>
+  </div>
+
+  <!-- Repo tabs -->
+  <p-tabs [value]="activeTabIndex()" (valueChange)="onTabChange(+$event!)">
+    <p-tablist>
+      @for (tab of tabs; track tab.id) {
+        <p-tab [value]="$index">
+          <i [class]="tab.icon + ' mr-2'"></i>{{ tab.label }}
+        </p-tab>
+      }
+    </p-tablist>
+
+    <p-tabpanels>
+      @for (tab of tabs; track tab.id) {
+        <p-tabpanel [value]="$index">
+
+          @if (loading()) {
+            <div class="gallery-loading">
+              <p-progressspinner />
+            </div>
+          } @else if (error()) {
+            <div class="gallery-error">
+              <i class="pi pi-exclamation-triangle"></i>
+              <p>{{ error() }}</p>
+            </div>
+          } @else {
+            <div class="card-grid">
+              @for (card of cards(); track card.id) {
+                <div class="card-tile" (click)="openLightbox(card)" (keydown.enter)="openLightbox(card)" tabindex="0" role="button" [attr.aria-label]="'View ' + card.name">
+                  <img
+                    [src]="card.image_url ?? 'assets/card-placeholder.png'"
+                    [alt]="card.name"
+                    class="card-image"
+                    loading="lazy"
+                  />
+                  <div class="card-tile-footer">
+                    <span class="card-tile-name">{{ card.name }}</span>
+                    <span class="card-tile-set">{{ card.set_name }}</span>
+                  </div>
+                </div>
+              }
+              @empty {
+                <p class="no-cards">No cards found.</p>
+              }
+            </div>
+          }
+
+        </p-tabpanel>
+      }
+    </p-tabpanels>
+  </p-tabs>
+
+</div>
+
+<!-- ─── Lightbox dialog ───────────────────────────────────────────────────── -->
+<p-dialog
+  [visible]="lightboxVisible()"
+  (visibleChange)="lightboxVisible.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{ width: '520px' }"
+  [header]="selectedCard()?.name ?? ''"
+>
+  @if (selectedCard(); as card) {
+    <div class="lightbox-body">
+      <img
+        [src]="card.image_url ?? 'assets/card-placeholder.png'"
+        [alt]="card.name"
+        class="lightbox-image"
+      />
+      <div class="lightbox-details">
+        <div class="detail-row">
+          <span class="detail-label">Set</span>
+          <span>{{ card.set_name }} ({{ card.set_code }})</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Card #</span>
+          <span>{{ card.card_number }}</span>
+        </div>
+        @if (card.ink_color) {
+          <div class="detail-row">
+            <span class="detail-label">Ink</span>
+            <p-tag [value]="card.ink_color" severity="info" />
+          </div>
+        }
+        @if (card.card_type) {
+          <div class="detail-row">
+            <span class="detail-label">Type</span>
+            <span>{{ card.card_type }}</span>
+          </div>
+        }
+        @if (card.rarity) {
+          <div class="detail-row">
+            <span class="detail-label">Rarity</span>
+            <span>{{ card.rarity }}</span>
+          </div>
+        }
+        @if (card.lore_value !== null) {
+          <div class="detail-row">
+            <span class="detail-label">Lore</span>
+            <span>{{ card.lore_value }}</span>
+          </div>
+        }
+        @if (card.metadata?.cost !== undefined) {
+          <div class="detail-row">
+            <span class="detail-label">Cost</span>
+            <span>{{ card.metadata.cost }}</span>
+          </div>
+        }
+        @if (card.metadata?.strength !== undefined) {
+          <div class="detail-row">
+            <span class="detail-label">Strength</span>
+            <span>{{ card.metadata.strength }}</span>
+          </div>
+        }
+        @if (card.metadata?.willpower !== undefined) {
+          <div class="detail-row">
+            <span class="detail-label">Willpower</span>
+            <span>{{ card.metadata.willpower }}</span>
+          </div>
+        }
+        @if (card.metadata.inkwell !== undefined) {
+          <div class="detail-row">
+            <span class="detail-label">Inkwell</span>
+            <span>{{ card.metadata.inkwell ? 'Yes' : 'No' }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Add to Collection button — only shown when logged in -->
+    @if (auth.isLoggedIn()) {
+      <div class="lightbox-actions">
+        <p-button
+          label="Add to Collection"
+          icon="pi pi-plus"
+          (onClick)="openAddDialog()"
+        />
+      </div>
+    }
+  }
+</p-dialog>
+
+<!-- ─── Add-to-collection dialog ─────────────────────────────────────────── -->
+<p-dialog
+  [visible]="addDialogVisible()"
+  (visibleChange)="addDialogVisible.set($event)"
+  header="Add to Collection"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{ width: '400px' }"
+>
+  @if (selectedCard(); as card) {
+    <div class="add-form">
+
+      <!-- Read-only card identity -->
+      <div class="add-card-header">
+        <span class="add-card-name">{{ card.name }}</span>
+        <span class="add-card-meta">{{ card.set_code }} · {{ card.card_number }}</span>
+      </div>
+
+      @if (addCollections().length === 0) {
+        <!-- No collections yet -->
+        <div class="no-collections">
+          <p>You don't have any collections yet.</p>
+          <p-button label="Create a Collection" icon="pi pi-folder-plus" severity="secondary" (onClick)="goToCollections()" />
+        </div>
+      } @else {
+        <!-- Collection selector -->
+        <div class="form-field">
+          <label class="form-label" for="add-collection">Collection</label>
+          <p-select
+            inputId="add-collection"
+            [options]="addCollections()"
+            optionLabel="name"
+            optionValue="id"
+            [ngModel]="addCollectionId()"
+            (ngModelChange)="addCollectionId.set($event)"
+            placeholder="Select a collection"
+            styleClass="w-full"
+          />
+        </div>
+
+        <!-- Condition -->
+        <div class="form-field">
+          <label class="form-label" for="add-condition">Condition</label>
+          <p-select
+            inputId="add-condition"
+            [options]="conditionOptions"
+            optionLabel="label"
+            optionValue="value"
+            [ngModel]="addCondition()"
+            (ngModelChange)="addCondition.set($event)"
+            styleClass="w-full"
+          />
+        </div>
+
+        <!-- Treatment -->
+        <div class="form-field">
+          <label class="form-label" for="add-treatment">Treatment</label>
+          <p-select
+            inputId="add-treatment"
+            [options]="treatmentOptions"
+            optionLabel="label"
+            optionValue="value"
+            [ngModel]="addTreatment()"
+            (ngModelChange)="addTreatment.set($event)"
+            styleClass="w-full"
+          />
+        </div>
+
+        <!-- Quantity -->
+        <div class="form-field">
+          <label class="form-label" for="add-quantity">Quantity</label>
+          <p-inputnumber
+            inputId="add-quantity"
+            [ngModel]="addQuantity()"
+            (ngModelChange)="addQuantity.set($event ?? 1)"
+            [min]="1"
+            [showButtons]="true"
+            styleClass="w-full"
+          />
+        </div>
+
+        @if (addError()) {
+          <p class="add-error">{{ addError() }}</p>
+        }
+
+        <!-- Actions -->
+        <div class="form-actions">
+          <p-button
+            label="Cancel"
+            severity="secondary"
+            [text]="true"
+            (onClick)="addDialogVisible.set(false)"
+          />
+          <p-button
+            label="Add Card"
+            icon="pi pi-check"
+            [loading]="addSubmitting()"
+            [disabled]="!addCollectionId()"
+            (onClick)="submitAdd()"
+          />
+        </div>
+      }
+
+    </div>
+  }
+</p-dialog>

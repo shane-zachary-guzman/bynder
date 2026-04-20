@@ -5,8 +5,9 @@
  * | Method | Path                              | Middleware                    | Handler    |
  * |--------|-----------------------------------|-------------------------------|------------|
  * | GET    | /:collectionId/cards              | authenticate                  | getCards   |
- * | POST   | /:collectionId/cards              | authenticate, checkCardLimit  | createCard |
- * | GET    | /:collectionId/cards/:id          | authenticate                  | getCard    |
+ * | POST   | /:collectionId/cards              | authenticate, checkCardLimit  | createCard       |
+ * | POST   | /:collectionId/cards/by-set       | authenticate, checkCardLimit  | createCardBySet  |
+ * | GET    | /:collectionId/cards/:id          | authenticate                  | getCard          |
  * | PUT    | /:collectionId/cards/:id          | authenticate                  | updateCard |
  * | DELETE | /:collectionId/cards/:id          | authenticate                  | deleteCard |
  */
@@ -17,6 +18,7 @@ import {
   getCards,
   getCard,
   createCard,
+  createCardBySet,
   updateCard,
   deleteCard,
 } from '../controllers/card.controller';
@@ -25,6 +27,7 @@ const router = Router({ mergeParams: true });
 
 router.get('/:collectionId/cards', authenticate, getCards);
 router.post('/:collectionId/cards', authenticate, checkCardLimit, createCard);
+router.post('/:collectionId/cards/by-set', authenticate, checkCardLimit, createCardBySet);
 router.get('/:collectionId/cards/:id', authenticate, getCard);
 router.put('/:collectionId/cards/:id', authenticate, updateCard);
 router.delete('/:collectionId/cards/:id', authenticate, deleteCard);

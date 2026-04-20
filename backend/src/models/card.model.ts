@@ -1,6 +1,24 @@
 import pool from '../config/db';
 import { CollectedCard, CardCondition, CardTreatment } from '../types/index';
 
+/**
+ * A {@link CollectedCard} row enriched with display fields from the matching
+ * game repository table (e.g. `lorcana_repo`). Fields are `null` when the
+ * repo card cannot be resolved (e.g. unsupported game or orphaned FK).
+ */
+export interface EnrichedCollectedCard extends CollectedCard {
+  /** Display name of the card from the repo table, or `null` if unresolved. */
+  name: string | null;
+  /** Absolute URL to the card art image, or `null` if unavailable. */
+  image_url: string | null;
+  /** Short set code, e.g. `'TFC'`, or `null` if unresolved. */
+  set_code: string | null;
+  /** Card number within its set, e.g. `'001/204'`, or `null` if unresolved. */
+  card_number: string | null;
+  /** Full set name, or `null` if unresolved. */
+  set_name: string | null;
+}
+
 /** Fields required when adding a new card to a collection. */
 export interface CreateCardInput {
   /** Primary key of the card in the Lorcana card repository. */
@@ -9,8 +27,8 @@ export interface CreateCardInput {
   treatment: CardTreatment;
   quantity: number;
   /** Decimal value as a string; optional at creation time. */
-  estimated_value?: string;
-  notes?: string;
+  estimated_value?: string | null;
+  notes?: string | null;
 }
 
 /** Fields that may be updated on an existing collected card; all are optional. */
@@ -27,14 +45,27 @@ export interface UpdateCardInput {
 /** Data-access methods for the `collected_cards` table. */
 export const CardModel = {
   /**
-   * Retrieves all cards in a collection, ordered newest first.
+   * Retrieves all cards in a collection joined with their repo metadata,
+   * ordered newest first. Currently supports `lorcana` via a LEFT JOIN on
+   * `lorcana_repo`; cards for other games return `null` for the repo fields.
    *
    * @param collectionId - Primary key of the parent collection.
-   * @returns An array of {@link CollectedCard} rows; empty if the collection has no cards.
+   * @returns An array of {@link EnrichedCollectedCard} rows; empty if the collection has no cards.
    */
-  async findAllByCollection(collectionId: number): Promise<CollectedCard[]> {
-    const { rows } = await pool.query<CollectedCard>(
-      'SELECT * FROM collected_cards WHERE collection_id = $1 ORDER BY created_at DESC',
+  async findAllByCollection(collectionId: number): Promise<EnrichedCollectedCard[]> {
+    const { rows } = await pool.query<EnrichedCollectedCard>(
+      `SELECT cc.*,
+              lr.name,
+              lr.image_url,
+              lr.set_code,
+              lr.card_number,
+              lr.set_name
+       FROM   collected_cards cc
+       LEFT JOIN lorcana_repo lr
+              ON cc.game = 'lorcana'
+             AND cc.repo_card_id = lr.id
+       WHERE  cc.collection_id = $1
+       ORDER  BY cc.created_at DESC`,
       [collectionId]
     );
     return rows;
