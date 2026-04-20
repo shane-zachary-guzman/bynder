@@ -25,8 +25,12 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 //   DATABASE_URL=postgresql://bynder:bynder_pass@localhost:5432/bynder_db npx tsx ...
 // This is useful when running outside Docker where the hostname is localhost
 // rather than the Docker service name "postgres".
+const connectionString = process.env['DATABASE_URL'] ?? '';
+
 const pool = new Pool({
-  connectionString: process.env['DATABASE_URL']?.replace('@postgres:', '@localhost:'),
+  connectionString,
+  // Render (and most hosted Postgres providers) require SSL for external connections.
+  ssl: connectionString.includes('localhost') ? false : { rejectUnauthorized: false },
 });
 
 /** Define of Source card's ability */
