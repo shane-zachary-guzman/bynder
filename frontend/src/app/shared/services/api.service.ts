@@ -17,13 +17,19 @@ export class ApiService {
   private readonly http = inject(HttpClient);
   private readonly base = `${environment.apiUrl}/api`;
 
+  // withCredentials must be true so the browser sends the httpOnly JWT cookie
+  // on cross-origin requests (production: frontend and backend on different
+  // subdomains). Has no effect in development where requests are same-origin
+  // via the ng serve proxy.
+  private readonly options = { withCredentials: true } as const;
+
   /**
    * Sends a GET request to the given API path.
    * @param path - Path relative to `/api`, e.g. `'/auth/me'`.
    * @returns Observable that emits the deserialized response body.
    */
   get<T>(path: string): Observable<T> {
-    return this.http.get<T>(`${this.base}${path}`);
+    return this.http.get<T>(`${this.base}${path}`, this.options);
   }
 
   /**
@@ -33,7 +39,7 @@ export class ApiService {
    * @returns Observable that emits the deserialized response body.
    */
   post<T>(path: string, body: unknown): Observable<T> {
-    return this.http.post<T>(`${this.base}${path}`, body);
+    return this.http.post<T>(`${this.base}${path}`, body, this.options);
   }
 
   /**
@@ -43,7 +49,7 @@ export class ApiService {
    * @returns Observable that emits the deserialized response body.
    */
   put<T>(path: string, body: unknown): Observable<T> {
-    return this.http.put<T>(`${this.base}${path}`, body);
+    return this.http.put<T>(`${this.base}${path}`, body, this.options);
   }
 
   /**
@@ -52,6 +58,6 @@ export class ApiService {
    * @returns Observable that emits the deserialized response body.
    */
   delete<T>(path: string): Observable<T> {
-    return this.http.delete<T>(`${this.base}${path}`);
+    return this.http.delete<T>(`${this.base}${path}`, this.options);
   }
 }

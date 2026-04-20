@@ -29,10 +29,15 @@ function signToken(payload: JwtPayload): string {
  * @param token - The signed JWT string returned by {@link signToken}.
  */
 function setTokenCookie(res: Response, token: string): void {
+  const production = process.env['NODE_ENV'] === 'production';
   res.cookie(COOKIE_NAME, token, {
     httpOnly: true,
-    secure: process.env['NODE_ENV'] === 'production',
-    sameSite: 'lax',
+    secure: production,
+    // Cross-origin deployments (frontend and backend on different subdomains)
+    // require SameSite=None + Secure so the browser includes the cookie on
+    // cross-origin requests. Fall back to 'lax' for local development where
+    // both services share the same origin via the ng serve proxy.
+    sameSite: production ? 'none' : 'lax',
     maxAge: COOKIE_MAX_AGE,
   });
 }
