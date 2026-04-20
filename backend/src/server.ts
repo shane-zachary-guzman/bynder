@@ -7,6 +7,7 @@ import authRoutes from './routes/auth.routes';
 import collectionRoutes from './routes/collection.routes';
 import cardRoutes from './routes/card.routes';
 import repoRoutes from './routes/repo.routes';
+import { runMigrations } from './config/migrate';
 
 dotenv.config();
 
@@ -38,8 +39,15 @@ app.get('/health', (_req, res) => {
 });
 
 // ─── Start ────────────────────────────────────────────────────────────────────
-app.listen(PORT, () => {
-  console.log(`Bynder API listening on port ${PORT}`);
-});
+runMigrations()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Bynder API listening on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error('[migrate] Fatal: could not run migrations, aborting.', err);
+    process.exit(1);
+  });
 
 export default app;
