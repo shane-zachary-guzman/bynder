@@ -1,0 +1,55 @@
+databases:
+  - name: bynder-db
+    databaseName: bynder
+    user: bynder
+    plan: free          # upgrade to 'starter' ($7/mo) for a persistent production DB
+
+services:
+  # ─── Backend API ────────────────────────────────────────────────────────────
+  - type: web
+    name: bynder-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      # Injected automatically from the bynder-db database above
+      - key: DATABASE_URL
+        fromDatabase:
+          name: bynder-db
+          property: connectionString
+
+      # Render generates a secure random value on first deploy
+      - key: JWT_SECRET
+        generateValue: true
+
+      # Set this in the Render dashboard after the frontend is deployed
+      # e.g. https://bynder-frontend.onrender.com  (or your custom domain)
+      - key: FRONTEND_URL
+        sync: false
+
+      # Uncomment and set when Stripe billing goes live
+      # - key: STRIPE_SECRET_KEY
+      #   sync: false
+      # - key: STRIPE_WEBHOOK_SECRET
+      #   sync: false
+
+  # ─── Frontend (Angular SPA) ─────────────────────────────────────────────────
+  - type: web
+    name: bynder-frontend
+    runtime: static
+    buildCommand: cd frontend && npm ci && npm run build:render
+    staticPublishPath: ./frontend/dist/frontend/browser
+    pullRequestPreviewsEnabled: true
+    envVars:
+      # Set this in the Render dashboard after the backend is deployed
+      # e.g. https://bynder-api.onrender.com
+      - key: API_URL
+        sync: false
+    routes:
+      # Rewrite all paths to index.html so Angular's client-side router works
+      - type: rewrite
+        source: /*
+        destination: /index.html
