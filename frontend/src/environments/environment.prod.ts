@@ -7,5 +7,5 @@
 export const environment = {
   production: true,
   /** Deployed backend origin, e.g. `'https://api.bynder.com'`. No trailing slash. */
-  apiUrl: 'https://api.yourdomain.com',
+  apiUrl: 'https://bynder-frontend.onrender.com/',
 };
