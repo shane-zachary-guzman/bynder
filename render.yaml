@@ -10,6 +10,7 @@ services:
     name: bynder-api
     runtime: docker
     dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
     plan: free
     envVars:
       - key: NODE_ENV
