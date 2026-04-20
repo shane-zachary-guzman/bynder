@@ -1,0 +1,51 @@
+<div class="page-container">
+  <h1 class="text-center mb-2">Choose Your Plan</h1>
+  <p class="text-center text-color-secondary mb-0">Pick the plan that fits your collection.</p>
+
+  <div class="pricing-grid">
+
+    <!-- Free Plan -->
+    <p-card styleClass="pricing-card">
+      <div class="flex flex-column align-items-center">
+        <h2 class="mt-0 mb-2">Free</h2>
+        <div class="price">$0</div>
+        <p class="text-color-secondary mb-0">Forever free</p>
+        <ul>
+          <li><i class="pi pi-check text-green-500 mr-2"></i>1 collection</li>
+          <li><i class="pi pi-check text-green-500 mr-2"></i>50 cards per collection</li>
+          <li><i class="pi pi-check text-green-500 mr-2"></i>Basic tracking</li>
+        </ul>
+        @if (currentPlan() === 'free') {
+          <p-button label="Current Plan" [disabled]="true" styleClass="w-full" />
+        }
+      </div>
+    </p-card>
+
+    <!-- Pro Plan -->
+    <p-card styleClass="pricing-card">
+      <div class="flex flex-column align-items-center">
+        <h2 class="mt-0 mb-2">Pro</h2>
+        <div class="price">$5<span style="font-size: 1rem; font-weight: 400;">/mo</span></div>
+        <p class="text-color-secondary mb-0">Everything you need</p>
+        <ul>
+          <li><i class="pi pi-check text-green-500 mr-2"></i>Unlimited collections</li>
+          <li><i class="pi pi-check text-green-500 mr-2"></i>Unlimited cards</li>
+          <li><i class="pi pi-check text-green-500 mr-2"></i>Advanced analytics</li>
+          <li><i class="pi pi-check text-green-500 mr-2"></i>Priority support</li>
+        </ul>
+        @if (currentPlan() === 'pro') {
+          <p-button label="Current Plan" [disabled]="true" severity="success" styleClass="w-full" />
+        } @else {
+          <p-button
+            label="Upgrade to Pro"
+            icon="pi pi-arrow-up"
+            severity="success"
+            styleClass="w-full"
+            (onClick)="upgradeToPro()"
+          />
+        }
+      </div>
+    </p-card>
+
+  </div>
+</div>

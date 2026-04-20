@@ -1,0 +1,168 @@
+.page-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+// ─── Filter bar ─────────────────────────────────────────────────────────────
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1.25rem;
+
+  .filter-search {
+    flex: 1 1 220px;
+
+    input {
+      width: 100%;
+    }
+  }
+
+  // p-select emits styleClass onto the host element
+  :host ::ng-deep .filter-select {
+    min-width: 150px;
+  }
+
+  @media (max-width: 640px) {
+    .filter-search { flex: 1 1 100%; }
+  }
+}
+
+// ─── Loading state ──────────────────────────────────────────────────────────
+
+.grid-loading {
+  display: flex;
+  justify-content: center;
+  padding: 5rem;
+  font-size: 2rem;
+  color: var(--p-primary-color);
+}
+
+// ─── Responsive grid ────────────────────────────────────────────────────────
+
+.card-grid {
+  display: grid;
+  gap: 1rem;
+
+  // Desktop: 4 columns (≥ 1025 px)
+  grid-template-columns: repeat(4, 1fr);
+
+  // Tablet: 3 columns (641 px – 1024 px)
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  // Mobile: 2 columns (≤ 640 px)
+  @media (max-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+// ─── Card tile ──────────────────────────────────────────────────────────────
+
+.card-tile {
+  border-radius: var(--p-border-radius);
+  overflow: hidden;
+  background: var(--p-surface-card);
+  border: 1px solid var(--p-surface-border);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+
+    .card-actions {
+      opacity: 1;
+    }
+  }
+}
+
+// ─── Image wrapper + hover overlay ──────────────────────────────────────────
+
+.card-image-wrap {
+  position: relative;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+}
+
+.card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.card-actions {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+// ─── Card footer ────────────────────────────────────────────────────────────
+
+.card-footer {
+  padding: 0.6rem 0.7rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.card-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-meta {
+  font-size: 0.72rem;
+  color: var(--p-text-muted-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.15rem;
+}
+
+// ─── Empty state ─────────────────────────────────────────────────────────────
+
+.empty-state {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 5rem 2rem;
+  color: var(--p-text-muted-color);
+  text-align: center;
+
+  i {
+    font-size: 3rem;
+  }
+
+  p {
+    margin: 0;
+    font-size: 1rem;
+  }
+}

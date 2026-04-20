@@ -1,0 +1,23 @@
+@import "primeicons/primeicons.css";
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--p-font-family, system-ui, sans-serif);
+  background: var(--p-surface-ground);
+  color: var(--p-text-color);
+}
+
+.page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.form-card {
+  max-width: 420px;
+  margin: 4rem auto;
+}

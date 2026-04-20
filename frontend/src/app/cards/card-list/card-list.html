@@ -1,0 +1,160 @@
+<div class="page-container">
+  <p-breadcrumb [model]="breadcrumbs" styleClass="mb-4" />
+
+  <div class="page-header">
+    <h1 class="m-0">{{ collectionName() }}</h1>
+    <p-button label="Add Card" icon="pi pi-plus" (onClick)="openCreate()" />
+  </div>
+
+  <!-- Filter bar -->
+  <div class="filter-bar">
+    <p-iconfield class="filter-search">
+      <p-inputicon styleClass="pi pi-search" />
+      <input
+        pInputText
+        type="text"
+        placeholder="Search cards…"
+        [ngModel]="searchTerm()"
+        (ngModelChange)="searchTerm.set($event)"
+      />
+    </p-iconfield>
+
+    @if (setOptions().length > 1) {
+      <p-select
+        [options]="setOptions()"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="filterSet()"
+        (ngModelChange)="filterSet.set($event)"
+        placeholder="All sets"
+        [showClear]="true"
+        styleClass="filter-select"
+      />
+    }
+
+    <p-select
+      [options]="conditionOptions"
+      optionLabel="label"
+      optionValue="value"
+      [ngModel]="filterCondition()"
+      (ngModelChange)="filterCondition.set($event)"
+      placeholder="Any condition"
+      [showClear]="true"
+      styleClass="filter-select"
+    />
+
+    <p-select
+      [options]="treatmentOptions"
+      optionLabel="label"
+      optionValue="value"
+      [ngModel]="filterTreatment()"
+      (ngModelChange)="filterTreatment.set($event)"
+      placeholder="Any treatment"
+      [showClear]="true"
+      styleClass="filter-select"
+    />
+
+    @if (hasActiveFilters()) {
+      <p-button
+        label="Clear"
+        icon="pi pi-times"
+        severity="secondary"
+        [text]="true"
+        (onClick)="clearFilters()"
+      />
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="grid-loading">
+      <i class="pi pi-spin pi-spinner"></i>
+    </div>
+  } @else {
+    <div class="card-grid">
+      @for (card of filteredCards(); track card.id) {
+        <div class="card-tile">
+
+          <!-- Card image -->
+          <div class="card-image-wrap">
+            <img
+              [src]="card.image_url ?? 'assets/card-placeholder.png'"
+              [alt]="card.name ?? 'Card'"
+              class="card-image"
+              loading="lazy"
+            />
+
+            <!-- Hover action overlay -->
+            <div class="card-actions" role="group" [attr.aria-label]="'Actions for ' + (card.name ?? 'card')">
+              <p-button
+                icon="pi pi-pencil"
+                severity="secondary"
+                [rounded]="true"
+                size="small"
+                (onClick)="openEdit(card)"
+                ariaLabel="Edit card"
+              />
+              <p-button
+                icon="pi pi-trash"
+                severity="danger"
+                [rounded]="true"
+                size="small"
+                (onClick)="confirmDelete(card)"
+                ariaLabel="Remove card"
+              />
+            </div>
+          </div>
+
+          <!-- Card footer -->
+          <div class="card-footer">
+            <span class="card-name">{{ card.name ?? ('Card #' + card.repo_card_id) }}</span>
+            <span class="card-meta">{{ card.set_code }} · {{ card.card_number }}</span>
+            <div class="card-tags">
+              @if (card.estimated_value) {
+                <p-tag [value]="'$ ' + card.estimated_value" />
+              }
+              <p-tag [value]="card.condition" severity="info" />
+              @if (card.treatment !== 'normal') {
+                <p-tag [value]="card.treatment" severity="warn" />
+              }
+              @if (card.quantity > 1) {
+                <p-tag [value]="'×' + card.quantity" severity="secondary" />
+              }
+            </div>
+          </div>
+
+        </div>
+      }
+
+      @empty {
+        <div class="empty-state">
+          <i class="pi pi-inbox"></i>
+          @if (hasActiveFilters()) {
+            <p>No cards match your filters.</p>
+            <p-button label="Clear filters" severity="secondary" [text]="true" (onClick)="clearFilters()" />
+          } @else {
+            <p>No cards yet. Add your first card!</p>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- Add / Edit dialog -->
+<p-dialog
+  [header]="editTarget() ? 'Edit Card' : 'Add Card'"
+  [visible]="showForm()"
+  (visibleChange)="showForm.set($event)"
+  [modal]="true"
+  [style]="{ width: '500px' }"
+  [draggable]="false"
+>
+  <app-card-form
+    [collectionId]="collectionId()"
+    [card]="editTarget()"
+    (saved)="onSaved()"
+    (cancelled)="showForm.set(false)"
+  />
+</p-dialog>
+
+<p-confirmdialog />

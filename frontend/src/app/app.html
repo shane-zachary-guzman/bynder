@@ -1,0 +1,45 @@
+<p-toast />
+
+<p-menubar [model]="menuItems()">
+  <ng-template #start>
+    <a routerLink="/" class="navbar-brand" style="font-size: 1.4rem; font-weight: 700; text-decoration: none; color: var(--p-primary-color); margin-right: 1rem;">
+      Bynder
+    </a>
+  </ng-template>
+
+  <ng-template #end>
+    <div class="navbar-end">
+      <p-button
+        [icon]="darkMode() ? 'pi pi-sun' : 'pi pi-moon'"
+        [rounded]="true"
+        [text]="true"
+        severity="secondary"
+        (onClick)="toggleDarkMode()"
+        [ariaLabel]="darkMode() ? 'Switch to light mode' : 'Switch to dark mode'"
+      />
+
+      @if (authService.isLoggedIn()) {
+        <p-tag
+          [value]="(authService.currentUser()?.plan ?? 'free') | uppercase"
+          [severity]="authService.currentUser()?.plan === 'pro' ? 'success' : 'secondary'"
+        />
+
+        <p-avatar
+          [label]="avatarLabel()"
+          shape="circle"
+          styleClass="p-overlay-badge"
+        />
+
+        <p-button
+          label="Logout"
+          icon="pi pi-sign-out"
+          severity="secondary"
+          [text]="true"
+          (onClick)="logout()"
+        />
+      }
+    </div>
+  </ng-template>
+</p-menubar>
+
+<router-outlet />

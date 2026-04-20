@@ -1,0 +1,33 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: bynder
+      POSTGRES_PASSWORD: bynder_pass
+      POSTGRES_DB: bynder_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/db/migrations:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bynder -d bynder_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    env_file: ./backend/.env
+    environment:
+      DATABASE_URL: postgresql://bynder:bynder_pass@postgres:5432/bynder_db
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
