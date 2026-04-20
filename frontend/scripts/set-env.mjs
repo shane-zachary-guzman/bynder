@@ -38,4 +38,4 @@ export const environment = {
 };
 `);
 
-console.log(\`[set-env] Wrote environment.prod.ts  →  apiUrl: "${apiUrl}"\`);
+console.log('[set-env] Wrote environment.prod.ts  \u2192  apiUrl: "' + apiUrl + '"');
