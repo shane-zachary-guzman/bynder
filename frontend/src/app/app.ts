@@ -50,7 +50,7 @@ export class App {
    */
   readonly menuItems = computed<MenuItem[]>(() => {
     if (!this.authService.isLoggedIn()) {
-      return [{ label: 'Login', icon: 'pi pi-sign-in', routerLink: '/auth/login' }];
+      return [];
     }
     return [
       { label: 'Collections', icon: 'pi pi-th-large', routerLink: '/collections' },
@@ -64,6 +64,13 @@ export class App {
    */
   toggleDarkMode(): void {
     this.darkMode.update(v => !v);
+  }
+
+  /**
+   * Button to nav to login.
+   */
+  toLogin(): void {
+    this.router.navigate(['auth', 'login']);
   }
 
   /**
