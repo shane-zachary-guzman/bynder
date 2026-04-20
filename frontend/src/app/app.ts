@@ -50,7 +50,7 @@ export class App {
    */
   readonly menuItems = computed<MenuItem[]>(() => {
     if (!this.authService.isLoggedIn()) {
-      return [];
+      return [{ label: 'Login', icon: 'pi pi-sign-in', routerLink: '/auth/login' }];
     }
     return [
       { label: 'Collections', icon: 'pi pi-th-large', routerLink: '/collections' },
